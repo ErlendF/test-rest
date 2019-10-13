@@ -9,6 +9,7 @@ func newRouter(h *Handler, apiVer string) *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/test", h.testHandler)
+	r.HandleFunc("/", h.testHandler)
 
 	return r
 }
