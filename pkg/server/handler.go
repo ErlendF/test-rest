@@ -14,5 +14,5 @@ func newHandler() *Handler {
 }
 
 func (h *Handler) testHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Success!")
+	fmt.Fprintf(w, "Success! v2! \n")
 }
