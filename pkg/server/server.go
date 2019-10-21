@@ -7,12 +7,12 @@ import (
 )
 
 // New creates a new http server
-func New(port string, apiVer string) *http.Server {
+func New(port int, apiVer string) *http.Server {
 	handler := newHandler()
 	router := newRouter(handler, apiVer)
 
 	return &http.Server{
-		Addr: fmt.Sprintf(":%s", port),
+		Addr: fmt.Sprintf(":%d", port),
 
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		WriteTimeout: time.Second * 15,

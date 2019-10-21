@@ -34,6 +34,7 @@ var config struct {
 	jsonFormatter   bool
 	shutdownTimeout int
 	version         int
+	port            int
 }
 
 // rootCmd represents the base command
@@ -43,20 +44,18 @@ var rootCmd = &cobra.Command{
 	Long:  `Test`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		port := "8080"
-
 		setupLog(config.verbose, config.jsonFormatter)
 		logrus.Debugf("Startup config: %+v", config)
 
 		apiVer := fmt.Sprintf("v%d", config.version)
-		srv := server.New(port, apiVer)
+		srv := server.New(config.port, apiVer)
 
 		// Making an channel to listen for errors (later blocking until either error or signal is received)
 		errChan := make(chan error)
 
 		// Starting server in a go routine to allow for graceful shutdown and potentially additional services
 		go func() {
-			logrus.Infof("Starting server on port %s", port)
+			logrus.Infof("Starting server on port %d", config.port)
 			if err := srv.ListenAndServe(); err != nil {
 				errChan <- err
 			}
@@ -98,6 +97,7 @@ func Execute() {
 
 func init() {
 	// Reads commandline arguments into config
+	rootCmd.Flags().IntVarP(&config.port, "port", "p", 80, "Sets which port the application should listen to")
 	rootCmd.Flags().IntVarP(&config.shutdownTimeout, "shutdownTimeout", "s", 15, "Sets the timeout (in seconds) for graceful shutdown")
 	rootCmd.Flags().IntVarP(&config.version, "version", "n", 1, "Sets the version for the API")
 	rootCmd.Flags().BoolVarP(&config.verbose, "verbose", "v", false, "Verbose logging")
