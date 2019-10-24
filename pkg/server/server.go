@@ -3,12 +3,13 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"test/pkg/database"
 	"time"
 )
 
 // New creates a new http server
-func New(port int) *http.Server {
-	handler := newHandler()
+func New(db *database.Database, port int) *http.Server {
+	handler := newHandler(db)
 	router := newRouter(handler)
 
 	return &http.Server{
