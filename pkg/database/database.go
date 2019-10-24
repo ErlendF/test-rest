@@ -19,6 +19,7 @@ type Database struct {
 func New(URL string) (*Database, error) {
 	db := &Database{UsernameNumberMax: 9999}
 	var err error
+	logrus.Debugf("Trying to connect to db: %s", URL)
 	db.DB, err = sqlx.Connect("postgres", URL)
 	if err != nil {
 		return nil, err
