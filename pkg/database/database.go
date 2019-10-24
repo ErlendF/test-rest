@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" //Postgres driver
 	"github.com/sirupsen/logrus"
 )
 

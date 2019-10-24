@@ -6,6 +6,7 @@ require (
 	github.com/gobuffalo/packr v1.30.1 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/jmoiron/sqlx v1.2.0
+	github.com/lib/pq v1.0.0
 	github.com/mattn/go-runewidth v0.0.5 // indirect
 	github.com/olekukonko/tablewriter v0.0.1
 	github.com/pkg/errors v0.8.0
