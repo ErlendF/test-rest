@@ -7,9 +7,9 @@ import (
 )
 
 // New creates a new http server
-func New(port int, apiVer string) *http.Server {
+func New(port int) *http.Server {
 	handler := newHandler()
-	router := newRouter(handler, apiVer)
+	router := newRouter(handler)
 
 	return &http.Server{
 		Addr: fmt.Sprintf(":%d", port),
