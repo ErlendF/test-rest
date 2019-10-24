@@ -22,7 +22,10 @@ type statusRow struct {
 func DoMigrate(url string, sqlDir string) error {
 	logrus.Infof("Do migration for %s", url)
 
-	dbx := db.New(url)
+	dbx, err := db.New(url)
+	if err != nil {
+		return err
+	}
 
 	m, err := Migrations(sqlDir)
 	if err != nil {
@@ -45,7 +48,10 @@ func DoMigrate(url string, sqlDir string) error {
 // ShowMigrations shows executed migrations
 func ShowMigrations(url string, sqlDir string) error {
 
-	dbx := db.New(url)
+	dbx, err := db.New(url)
+	if err != nil {
+		return err
+	}
 
 	records, err := migrate.GetMigrationRecords(dbx.DB.DB, "postgres")
 	if err != nil {

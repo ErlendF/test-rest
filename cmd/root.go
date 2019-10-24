@@ -58,7 +58,10 @@ var rootCmd = &cobra.Command{
 		setupLog(config.verbose, config.jsonFormatter)
 		logrus.Debugf("Startup config: %+v", config)
 
-		db := database.New(dbURL)
+		db, err := database.New(dbURL)
+		if err != nil {
+			logrus.WithError(err).Fatal("Could not get database")
+		}
 
 		srv := server.New(db, config.port)
 

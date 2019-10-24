@@ -15,9 +15,13 @@ type Database struct {
 }
 
 //New returns a database object
-func New(URL string) *Database {
+func New(URL string) (*Database, error) {
 	db := &Database{UsernameNumberMax: 9999}
-	db.DB = sqlx.MustConnect("postgres", URL)
+	var err error
+	db.DB, err = sqlx.Connect("postgres", URL)
+	if err != nil {
+		return nil, err
+	}
 
 	maxOpen := 20
 	maxIdle := 15
@@ -35,5 +39,5 @@ func New(URL string) *Database {
 	db.SetMaxOpenConns(maxOpen)
 	db.SetMaxIdleConns(maxIdle)
 
-	return db
+	return db, nil
 }
