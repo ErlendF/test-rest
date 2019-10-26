@@ -36,7 +36,6 @@ var config struct {
 	shutdownTimeout int
 	version         int
 	port            int
-	SQLDir          string
 }
 
 // rootCmd represents the base command
@@ -46,7 +45,8 @@ var rootCmd = &cobra.Command{
 	Long:  `Test`,
 	Run: func(cmd *cobra.Command, args []string) {
 		setupLog(config.verbose, config.jsonFormatter)
-		err := dbmigrate.DoMigrate("/root/webserverRepo/sql")
+		sqlDir := os.Getenv("SQL_DIR")
+		err := dbmigrate.DoMigrate(sqlDir)
 		if err != nil {
 			logrus.Warn(err)
 		}
@@ -112,7 +112,6 @@ func init() {
 	rootCmd.PersistentFlags().IntVarP(&config.shutdownTimeout, "shutdownTimeout", "s", 15, "Sets the timeout (in seconds) for graceful shutdown")
 	rootCmd.PersistentFlags().BoolVarP(&config.verbose, "verbose", "v", false, "Verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&config.jsonFormatter, "jsonFormatter", "j", false, "JSON logging format")
-	rootCmd.PersistentFlags().StringVarP(&config.SQLDir, "sql-dir", "Q", "./sql", "directory with migration files")
 }
 
 // setupLog initializes logrus logger
