@@ -90,7 +90,7 @@ func (db *Database) AddPost(content string) error {
 
 //AddComment adds a new comment to a post
 func (db *Database) AddComment(comment *models.Comment) error {
-	result, err := db.NamedExec(`INSERT INTO comment (post, content) VALUES (:post, :content);`, comment)
+	result, err := db.NamedExec(`INSERT INTO comments (post, content) VALUES (:post, :content);`, comment)
 	if err != nil {
 		return err
 	}
