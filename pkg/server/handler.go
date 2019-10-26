@@ -67,7 +67,7 @@ func (h *handler) getPosts(w http.ResponseWriter, r *http.Request) {
 	logrus.WithField("route", mux.CurrentRoute(r).GetName()).Debugf("Request recieved")
 	resp, err := h.GetPosts()
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{"route": mux.CurrentRoute(r).GetName()}).Warn("Could not add comment")
+		logrus.WithError(err).WithFields(logrus.Fields{"route": mux.CurrentRoute(r).GetName()}).Warn("Could not get posts")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

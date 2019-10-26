@@ -60,7 +60,7 @@ func (db *Database) getComments(ID int64) ([]models.Comment, error) {
 
 	var comment models.Comment
 	for rows.Next() {
-		err = rows.Scan(&comment)
+		err = rows.StructScan(&comment)
 		if err != nil {
 			return nil, err
 		}
