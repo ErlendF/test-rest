@@ -37,7 +37,9 @@ func (db *Database) GetPosts() ([]models.Post, error) {
 	}
 
 	for _, p := range posts {
-		p.Comments, err = db.getComments(p.ID)
+		var comments []models.Comment
+		comments, err = db.getComments(p.ID)
+		p.Comments = &comments
 		if err != nil && err.Error() != "No rows" {
 			return nil, err
 		}
