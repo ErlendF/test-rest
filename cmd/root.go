@@ -26,10 +26,8 @@ import (
 	"test/pkg/server"
 	"time"
 
-	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var config struct {
@@ -48,7 +46,7 @@ var rootCmd = &cobra.Command{
 	Long:  `Test`,
 	Run: func(cmd *cobra.Command, args []string) {
 		setupLog(config.verbose, config.jsonFormatter)
-		err := dbmigrate.DoMigrate(config.SQLDir)
+		err := dbmigrate.DoMigrate("/root/webserverRepo/sql")
 		if err != nil {
 			logrus.Warn(err)
 		}
@@ -109,34 +107,12 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
 	// Reads commandline arguments into config
 	rootCmd.PersistentFlags().IntVarP(&config.port, "port", "p", 80, "Sets which port the application should listen to")
 	rootCmd.PersistentFlags().IntVarP(&config.shutdownTimeout, "shutdownTimeout", "s", 15, "Sets the timeout (in seconds) for graceful shutdown")
 	rootCmd.PersistentFlags().BoolVarP(&config.verbose, "verbose", "v", false, "Verbose logging")
 	rootCmd.PersistentFlags().BoolVarP(&config.jsonFormatter, "jsonFormatter", "j", false, "JSON logging format")
 	rootCmd.PersistentFlags().StringVarP(&config.SQLDir, "sql-dir", "Q", "./sql", "directory with migration files")
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-
-	// Find home directory.
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	// Search config in home directory with name ".rsp" (without extension).
-	viper.AddConfigPath(home)
-	viper.SetConfigName(".rsp")
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }
 
 // setupLog initializes logrus logger
