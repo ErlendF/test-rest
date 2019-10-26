@@ -46,6 +46,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		setupLog(config.verbose, config.jsonFormatter)
 		sqlDir := os.Getenv("SQL_DIR")
+		logrus.Debugf("Sql dir: %s", sqlDir)
 		err := dbmigrate.DoMigrate(sqlDir)
 		if err != nil {
 			logrus.Warn(err)
