@@ -72,7 +72,6 @@ func (h *handler) getPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.Debugf("resp: %+v", resp)
 	setHeader(w)
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {

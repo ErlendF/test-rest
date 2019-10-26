@@ -9,8 +9,8 @@ import (
 )
 
 //GetPosts gets posts
-func (db *Database) GetPosts() ([]models.Post, error) {
-	var posts []models.Post
+func (db *Database) GetPosts() ([]*models.Post, error) {
+	var posts []*models.Post
 	stmt, err := db.Preparex(`SELECT id, content FROM posts;`)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -33,13 +33,11 @@ func (db *Database) GetPosts() ([]models.Post, error) {
 			return nil, err
 		}
 
-		posts = append(posts, post)
+		posts = append(posts, &post)
 	}
 
 	for _, p := range posts {
-		var comments []models.Comment
-		comments, err = db.getComments(p.ID)
-		p.Comments = &comments
+		p.Comments, err = db.getComments(p.ID)
 		if err != nil && err.Error() != "No rows" {
 			return nil, err
 		}
@@ -75,8 +73,6 @@ func (db *Database) getComments(ID int64) ([]models.Comment, error) {
 
 		comments = append(comments, comment)
 	}
-
-	logrus.Debugf("Comments: %+v", comments)
 
 	return comments, nil
 }
