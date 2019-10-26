@@ -45,12 +45,8 @@ var rootCmd = &cobra.Command{
 	Short: "Test",
 	Long:  `Test`,
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL := os.Getenv("DB_URL")
-		if dbURL == "" {
-			logrus.Fatal("No DB_URL specified, required")
-		}
 		setupLog(config.verbose, config.jsonFormatter)
-		err := dbmigrate.DoMigrate(dbURL, config.SQLDir)
+		err := dbmigrate.DoMigrate(config.SQLDir)
 		if err != nil {
 			logrus.Warn(err)
 		}
@@ -58,7 +54,7 @@ var rootCmd = &cobra.Command{
 		setupLog(config.verbose, config.jsonFormatter)
 		logrus.Debugf("Startup config: %+v", config)
 
-		db, err := database.New(dbURL)
+		db, err := database.New()
 		if err != nil {
 			logrus.WithError(err).Fatal("Could not get database")
 		}

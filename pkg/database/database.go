@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -16,11 +17,20 @@ type Database struct {
 }
 
 //New returns a database object
-func New(URL string) (*Database, error) {
+func New() (*Database, error) {
 	db := &Database{UsernameNumberMax: 9999}
 	var err error
-	logrus.Debugf("Trying to connect to db: %s", URL)
-	db.DB, err = sqlx.Connect("postgres", URL)
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s",
+		host, port, user, password, dbname)
+
+	logrus.Debugf("Trying to connect to db: %s", psqlInfo)
+	db.DB, err = sqlx.Connect("postgres", psqlInfo)
 	if err != nil {
 		return nil, err
 	}

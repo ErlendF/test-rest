@@ -19,10 +19,8 @@ type statusRow struct {
 }
 
 // DoMigrate do database migrations
-func DoMigrate(url string, sqlDir string) error {
-	logrus.Infof("Do migration for %s", url)
-
-	dbx, err := db.New(url)
+func DoMigrate(sqlDir string) error {
+	dbx, err := db.New()
 	if err != nil {
 		return err
 	}
@@ -46,9 +44,9 @@ func DoMigrate(url string, sqlDir string) error {
 }
 
 // ShowMigrations shows executed migrations
-func ShowMigrations(url string, sqlDir string) error {
+func ShowMigrations(sqlDir string) error {
 
-	dbx, err := db.New(url)
+	dbx, err := db.New()
 	if err != nil {
 		return err
 	}
