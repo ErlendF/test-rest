@@ -26,7 +26,7 @@ func (db *Database) GetPosts() ([]models.Post, error) {
 
 	var post models.Post
 	for rows.Next() {
-		err = rows.Scan(&post)
+		err = rows.StructScan(&post)
 		if err != nil {
 			return nil, err
 		}
