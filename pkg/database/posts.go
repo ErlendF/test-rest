@@ -38,12 +38,16 @@ func (db *Database) GetPosts() ([]models.Post, error) {
 
 	for _, p := range posts {
 		p.Comments, err = db.getComments(p.ID)
+		if err != nil && err.Error() != "No rows" {
+			return nil, err
+		}
 	}
 
 	return posts, nil
 }
 
 func (db *Database) getComments(ID int64) ([]models.Comment, error) {
+	logrus.Debugf("Getting comments for post: %d", ID)
 	var comments []models.Comment
 	stmt, err := db.Preparex(`SELECT id, content FROM comments WHERE post = $1;`)
 	if err != nil {
