@@ -74,6 +74,8 @@ func (db *Database) getComments(ID int64) ([]models.Comment, error) {
 		comments = append(comments, comment)
 	}
 
+	logrus.Debugf("Comments: %+v", comments)
+
 	return comments, nil
 }
 
