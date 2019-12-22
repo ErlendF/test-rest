@@ -17,5 +17,6 @@ require (
 	github.com/spf13/viper v1.3.2
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	google.golang.org/appengine v1.1.0 // indirect
+	gopkg.in/errgo.v2 v2.1.0
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 )

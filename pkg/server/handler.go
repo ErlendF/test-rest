@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"test/pkg/database"
@@ -11,76 +12,87 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//handler test
+var errBadBody = errors.New("bad request body")
+
+// handler contains a database
 type handler struct {
 	database.Database
 }
 
-//newHandler returns handler
+// newHandler returns handler
 func newHandler(db *database.Database) *handler {
 	return &handler{*db}
 }
 
-func (h *handler) testHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Success! Change test 19.10 \n")
-}
-
 func (h *handler) addPost(w http.ResponseWriter, r *http.Request) {
-	logrus.WithField("route", mux.CurrentRoute(r).GetName()).Debugf("Request recieved")
 	var post models.Post
 	err := json.NewDecoder(r.Body).Decode(&post)
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{"route": mux.CurrentRoute(r).GetName()}).Warn("Could not parse request body")
-		http.Error(w, "Bad request: bad request body", http.StatusBadRequest)
+		logRespond(w, r, fmt.Errorf("%w: %v", errBadBody, err))
 		return
 	}
 	err = h.AddPost(post.Content)
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{"route": mux.CurrentRoute(r).GetName()}).Warn("Could not add post")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		logRespond(w, r, err)
 		return
 	}
 
-	fmt.Fprintf(w, "OK")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *handler) addComment(w http.ResponseWriter, r *http.Request) {
-	logrus.WithField("route", mux.CurrentRoute(r).GetName()).Debugf("Request recieved")
 	var comment models.Comment
 	err := json.NewDecoder(r.Body).Decode(&comment)
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{"route": mux.CurrentRoute(r).GetName()}).Warn("Could not parse request body")
-		http.Error(w, "Bad request: bad request body", http.StatusBadRequest)
+		logRespond(w, r, fmt.Errorf("%w: %v", errBadBody, err))
 		return
 	}
 	err = h.AddComment(&comment)
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{"route": mux.CurrentRoute(r).GetName()}).Warn("Could not add comment")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		logRespond(w, r, err)
 		return
 	}
 
-	fmt.Fprintf(w, "OK")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *handler) getPosts(w http.ResponseWriter, r *http.Request) {
-	logrus.WithField("route", mux.CurrentRoute(r).GetName()).Debugf("Request recieved")
 	resp, err := h.GetPosts()
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{"route": mux.CurrentRoute(r).GetName()}).Warn("Could not get posts")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		logRespond(w, r, err)
 		return
 	}
 
 	setHeader(w)
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{"route": mux.CurrentRoute(r).GetName(), "response": resp}).Warn("Could not encode response")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		logRespond(w, r, err)
 		return
 	}
 }
 
+// notFound handles all requests which don't hit any of the routes defined in the router
+func (h *handler) notFound(w http.ResponseWriter, r *http.Request) {
+	logrus.WithField("request", r.RequestURI).Debug("Not found handler")
+	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+}
+
 func setHeader(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
+}
+
+// logRespond handles errors. It logs the error and returns an appropriate errormessage and status code based on the error.
+func logRespond(w http.ResponseWriter, r *http.Request, err error) {
+	logrus.WithField("route", mux.CurrentRoute(r).GetName()).Warn(err)
+
+	switch {
+	case errors.Is(err, models.ErrDBInsert):
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	case errors.Is(err, models.ErrNotFound):
+		http.Error(w, "No posts yet", http.StatusNotFound)
+	case errors.Is(err, errBadBody):
+		http.Error(w, "Bad request: bad request body", http.StatusBadRequest)
+	default:
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 }

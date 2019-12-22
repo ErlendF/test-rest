@@ -45,7 +45,6 @@ func DoMigrate(sqlDir string) error {
 
 // ShowMigrations shows executed migrations
 func ShowMigrations(sqlDir string) error {
-
 	dbx, err := db.New()
 	if err != nil {
 		return err

@@ -2,19 +2,17 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"test/pkg/models"
-
-	"github.com/sirupsen/logrus"
 )
 
-//GetPosts gets posts
+// GetPosts gets posts
 func (db *Database) GetPosts() ([]models.Post, error) {
 	var posts []models.Post
 	stmt, err := db.Preparex(`SELECT id, content FROM posts;`)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = fmt.Errorf("No rows")
+			err = models.ErrNotFound
 		}
 
 		return nil, err
@@ -36,9 +34,10 @@ func (db *Database) GetPosts() ([]models.Post, error) {
 		posts = append(posts, post)
 	}
 
+	// getting all comments for each of the posts
 	for i := range posts {
 		posts[i].Comments, err = db.getComments(posts[i].ID)
-		if err != nil && err.Error() != "No rows" {
+		if err != nil && errors.Is(err, models.ErrNotFound) {
 			return nil, err
 		}
 	}
@@ -46,19 +45,18 @@ func (db *Database) GetPosts() ([]models.Post, error) {
 	return posts, nil
 }
 
-func (db *Database) getComments(ID int64) ([]models.Comment, error) {
-	logrus.Debugf("Getting comments for post: %d", ID)
+func (db *Database) getComments(id int64) ([]models.Comment, error) {
 	var comments []models.Comment
 	stmt, err := db.Preparex(`SELECT id, content FROM comments WHERE post = $1;`)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = fmt.Errorf("No rows")
+			err = models.ErrNotFound
 		}
 
 		return nil, err
 	}
 
-	rows, err := stmt.Queryx(ID)
+	rows, err := stmt.Queryx(id)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +75,7 @@ func (db *Database) getComments(ID int64) ([]models.Comment, error) {
 	return comments, nil
 }
 
-//AddPost adds a new post
+// AddPost adds a new post
 func (db *Database) AddPost(content string) error {
 	result, err := db.Exec(`INSERT INTO posts (content) VALUES ($1);`, content)
 	if err != nil {
@@ -88,15 +86,14 @@ func (db *Database) AddPost(content string) error {
 		return err
 	}
 	if num == 0 {
-		return fmt.Errorf("Could not insert post")
+		return models.ErrDBInsert
 	}
 
 	return nil
 }
 
-//AddComment adds a new comment to a post
+// AddComment adds a new comment to a post
 func (db *Database) AddComment(comment *models.Comment) error {
-	logrus.Debugf("Comment: %+v", comment)
 	result, err := db.NamedExec(`INSERT INTO comments (post, content) VALUES (:post, :content);`, comment)
 	if err != nil {
 		return err
@@ -106,7 +103,7 @@ func (db *Database) AddComment(comment *models.Comment) error {
 		return err
 	}
 	if num == 0 {
-		return fmt.Errorf("Could not insert post")
+		return models.ErrDBInsert
 	}
 
 	return nil

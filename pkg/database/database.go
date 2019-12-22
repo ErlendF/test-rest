@@ -6,17 +6,17 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq" //Postgres driver
+	_ "github.com/lib/pq" // Postgres driver
 	"github.com/sirupsen/logrus"
 )
 
-//Database contains a sql db
+// Database contains a sql db
 type Database struct {
 	*sqlx.DB
 	UsernameNumberMax int
 }
 
-//New returns a database object
+// New returns a database object
 func New() (*Database, error) {
 	db := &Database{UsernameNumberMax: 9999}
 	var err error

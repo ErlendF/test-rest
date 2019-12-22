@@ -109,14 +109,14 @@ func Execute() {
 
 func init() {
 	// Reads commandline arguments into config
-	rootCmd.PersistentFlags().IntVarP(&config.port, "port", "p", 80, "Sets which port the application should listen to")
-	rootCmd.PersistentFlags().IntVarP(&config.shutdownTimeout, "shutdownTimeout", "s", 15, "Sets the timeout (in seconds) for graceful shutdown")
-	rootCmd.PersistentFlags().BoolVarP(&config.verbose, "verbose", "v", false, "Verbose logging")
-	rootCmd.PersistentFlags().BoolVarP(&config.jsonFormatter, "jsonFormatter", "j", false, "JSON logging format")
+	rootCmd.Flags().IntVarP(&config.port, "port", "p", 80, "Sets which port the application should listen to")
+	rootCmd.Flags().IntVarP(&config.shutdownTimeout, "shutdownTimeout", "s", 15, "Sets the timeout (in seconds) for graceful shutdown")
+	rootCmd.Flags().BoolVarP(&config.verbose, "verbose", "v", false, "Verbose logging")
+	rootCmd.Flags().BoolVarP(&config.jsonFormatter, "jsonFormatter", "j", false, "JSON logging format")
 }
 
 // setupLog initializes logrus logger
-func setupLog(verbose, JSONFormatter bool) {
+func setupLog(verbose, jsonFormatter bool) {
 	logLevel := logrus.InfoLevel
 
 	if verbose {
@@ -126,7 +126,7 @@ func setupLog(verbose, JSONFormatter bool) {
 	logrus.SetLevel(logLevel)
 	logrus.SetOutput(os.Stdout)
 
-	if JSONFormatter {
+	if jsonFormatter {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
 }

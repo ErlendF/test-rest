@@ -9,9 +9,8 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 )
 
-//Migrations sets up tables initially. Loads migrations from a directory
+// Migrations sets up tables initially. Loads migrations from a directory
 func Migrations(srcDir string) ([]*migrate.Migration, error) {
-
 	migrations := make([]*migrate.Migration, 0)
 
 	file, err := os.Open(srcDir)
@@ -49,7 +48,6 @@ func Migrations(srcDir string) ([]*migrate.Migration, error) {
 	sort.Sort(byID(migrations))
 
 	return migrations, nil
-
 }
 
 type byID []*migrate.Migration
