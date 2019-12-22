@@ -63,7 +63,7 @@ func (h *handler) getPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setHeader(w)
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		logRespond(w, r, err)
@@ -75,10 +75,6 @@ func (h *handler) getPosts(w http.ResponseWriter, r *http.Request) {
 func (h *handler) notFound(w http.ResponseWriter, r *http.Request) {
 	logrus.WithField("request", r.RequestURI).Debug("Not found handler")
 	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-}
-
-func setHeader(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
 }
 
 // logRespond handles errors. It logs the error and returns an appropriate errormessage and status code based on the error.
