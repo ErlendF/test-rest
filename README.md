@@ -9,10 +9,10 @@ This is a REST API for a very simple message board. It supports and uses a MySQL
 *GET/POST*
 
 - A GET requests retrieves all posts stored in the database and related comments.
-- A POST request makes a new post. The body of the POST request need to be in the following format: ```{"content": "This is an example post."}```
+- A POST request makes a new post. The body of the POST request needs to be in the following format: ```{"content": "This is an example post."}```
 
 
 ### /comment
 *POST*
 
-- Used for making new comments on a post. The body of the POST request need to be in the following format: ```{"post": 1, "content": "This is an example comment on post 1."}```
+Used for making new comments on a post. The body of the POST request needs to be in the following format: ```{"post": 1, "content": "This is an example comment on post 1."}```
