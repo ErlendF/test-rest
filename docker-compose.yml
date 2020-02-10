@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  postgres:
+    image: postgres:12
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+
+  pgadmin:
+    container_name: pgadmin4-test-rest
+    image: dpage/pgadmin4:4.10
+    depends_on:
+    - postgres
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=temporary@test.com
+      - PGADMIN_DEFAULT_PASSWORD=tempPass
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json

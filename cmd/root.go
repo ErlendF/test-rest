@@ -22,10 +22,10 @@ import (
 	"os"
 	"os/signal"
 	"test/pkg/database"
-	"test/pkg/dbmigrate"
 	"test/pkg/server"
 	"time"
 
+	_ "github.com/joho/godotenv/autoload" // importing .env to os.env
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -36,6 +36,7 @@ var config struct {
 	shutdownTimeout int
 	version         int
 	port            int
+	dbType          string
 }
 
 // rootCmd represents the base command
@@ -45,19 +46,17 @@ var rootCmd = &cobra.Command{
 	Long:  `Test`,
 	Run: func(cmd *cobra.Command, args []string) {
 		setupLog(config.verbose, config.jsonFormatter)
-		sqlDir := os.Getenv("SQL_DIR")
-		logrus.Debugf("Sql dir: %s", sqlDir)
-		err := dbmigrate.DoMigrate(sqlDir)
-		if err != nil {
-			logrus.Warn(err)
-		}
-
-		setupLog(config.verbose, config.jsonFormatter)
 		logrus.Debugf("Startup config: %+v", config)
 
-		db, err := database.New()
+		// Getting a database instance
+		db, err := database.New(config.dbType)
 		if err != nil {
-			logrus.WithError(err).Fatal("Could not get database")
+			logrus.WithError(err).Fatalf("Unable to get new Database:%s", err)
+		}
+
+		err = db.Migrate()
+		if err != nil {
+			logrus.Fatal(err)
 		}
 
 		srv := server.New(db, config.port)
@@ -109,10 +108,11 @@ func Execute() {
 
 func init() {
 	// Reads commandline arguments into config
-	rootCmd.Flags().IntVarP(&config.port, "port", "p", 80, "Sets which port the application should listen to")
+	rootCmd.Flags().IntVarP(&config.port, "port", "p", 8080, "Sets which port the application should listen to")
 	rootCmd.Flags().IntVarP(&config.shutdownTimeout, "shutdownTimeout", "s", 15, "Sets the timeout (in seconds) for graceful shutdown")
 	rootCmd.Flags().BoolVarP(&config.verbose, "verbose", "v", false, "Verbose logging")
 	rootCmd.Flags().BoolVarP(&config.jsonFormatter, "jsonFormatter", "j", false, "JSON logging format")
+	rootCmd.Flags().StringVarP(&config.dbType, "database", "d", "mysql", "Database type (mysql, postgres)")
 }
 
 // setupLog initializes logrus logger

@@ -74,7 +74,7 @@ func (h *handler) getPosts(w http.ResponseWriter, r *http.Request) {
 // notFound handles all requests which don't hit any of the routes defined in the router
 func (h *handler) notFound(w http.ResponseWriter, r *http.Request) {
 	logrus.WithField("request", r.RequestURI).Debug("Not found handler")
-	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	http.Error(w, "Test-Rest: "+http.StatusText(http.StatusNotFound), http.StatusNotFound)
 }
 
 // logRespond handles errors. It logs the error and returns an appropriate errormessage and status code based on the error.
