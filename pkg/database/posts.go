@@ -47,7 +47,7 @@ func (db *Database) GetPosts() ([]models.Post, error) {
 
 func (db *Database) getComments(id int64) ([]models.Comment, error) {
 	var comments []models.Comment
-	stmt, err := db.Preparex(`SELECT id, content FROM comments WHERE post = $1;`)
+	stmt, err := db.Preparex(db.Rebind(`SELECT id, content FROM comments WHERE post = ?;`))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = models.ErrNotFound
@@ -77,7 +77,7 @@ func (db *Database) getComments(id int64) ([]models.Comment, error) {
 
 // AddPost adds a new post
 func (db *Database) AddPost(content string) error {
-	result, err := db.Exec(`INSERT INTO posts (content) VALUES ($1);`, content)
+	result, err := db.Exec(db.Rebind(`INSERT INTO posts (content) VALUES (?);`), content)
 	if err != nil {
 		return err
 	}

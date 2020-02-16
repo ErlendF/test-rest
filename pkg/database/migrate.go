@@ -9,7 +9,7 @@ import (
 
 func (db *Database) Migrate() error {
 	migrate.SetTable("migrations")
-	num, err := migrate.Exec(db.DB.DB, db.dbType, getMigrations(), migrate.Up)
+	num, err := migrate.Exec(db.DB.DB, db.dbType, db.getMigrations(), migrate.Up)
 	if err != nil {
 		return fmt.Errorf("could not perform database migrations: %w", err)
 	}
