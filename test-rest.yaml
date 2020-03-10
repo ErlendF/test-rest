@@ -1,0 +1,97 @@
+# This is a simple yaml file designed to deploy a version a docker image based on this repository using Argo CD to a kubernetes cluster.
+# Replace the image for personal use.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-rest-deployment
+  labels:
+    app: test-rest
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  minReadySeconds: 30
+  selector:
+    matchLabels:
+      app: test-rest
+  template:
+    metadata:
+      labels:
+        app: test-rest
+    spec:
+      containers:
+        - name: test-rest
+          image: gcr.io/bachelor-2020/test-rest:v1.15
+          ports:
+            - containerPort: 8080
+          env:
+            # These secrets are required to start the pod.
+            # [START cloudsql_secrets]
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: DB_PORT
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: DB_NAME
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: DB_NAME
+            # [END cloudsql_secrets]
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: test-rest-service
+spec:
+  selector:
+    app: test-rest
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test-rest-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: test-rest
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: test-rest-service
+          servicePort: 80
+  backend:
+    serviceName: test-rest-service
+    servicePort: 80
+
+
+
