@@ -25,18 +25,18 @@ import (
 	"test/pkg/server"
 	"time"
 
-	_ "github.com/joho/godotenv/autoload" // importing .env to os.env
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
-var config struct {
+type config struct {
 	verbose         bool
 	jsonFormatter   bool
 	shutdownTimeout int
-	version         int
 	port            int
-	dbType          string
+	db              database.Config
 }
 
 // rootCmd represents the base command
@@ -45,11 +45,12 @@ var rootCmd = &cobra.Command{
 	Short: "Test",
 	Long:  `Test`,
 	Run: func(cmd *cobra.Command, args []string) {
-		setupLog(config.verbose, config.jsonFormatter)
-		logrus.Debugf("Startup config: %+v", config)
+		cfg := initConfig()
+		setupLog(cfg.verbose, cfg.jsonFormatter)
+		logrus.Debugf("Startup config: %+v", cfg)
 
 		// Getting a database instance
-		db, err := database.New(config.dbType)
+		db, err := database.New(&cfg.db)
 		if err != nil {
 			logrus.WithError(err).Fatalf("Unable to get new Database:%s", err)
 		}
@@ -59,14 +60,14 @@ var rootCmd = &cobra.Command{
 			logrus.Fatal(err)
 		}
 
-		srv := server.New(db, config.port)
+		srv := server.New(db, cfg.port)
 
 		// Making an channel to listen for errors (later blocking until either error or signal is received)
 		errChan := make(chan error)
 
 		// Starting server in a go routine to allow for graceful shutdown and potentially additional services
 		go func() {
-			logrus.Infof("Starting server on port %d", config.port)
+			logrus.Infof("Starting server on port %d", cfg.port)
 			if err := srv.ListenAndServe(); err != nil {
 				errChan <- err
 			}
@@ -85,7 +86,7 @@ var rootCmd = &cobra.Command{
 			logrus.WithError(err).Errorf("Shutting down server due to error")
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.shutdownTimeout)*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.shutdownTimeout)*time.Second)
 		defer cancel()
 
 		// Attempting to shut down the server
@@ -108,11 +109,23 @@ func Execute() {
 
 func init() {
 	// Reads commandline arguments into config
-	rootCmd.Flags().IntVarP(&config.port, "port", "p", 8080, "Sets which port the application should listen to")
-	rootCmd.Flags().IntVarP(&config.shutdownTimeout, "shutdownTimeout", "s", 15, "Sets the timeout (in seconds) for graceful shutdown")
-	rootCmd.Flags().BoolVarP(&config.verbose, "verbose", "v", false, "Verbose logging")
-	rootCmd.Flags().BoolVarP(&config.jsonFormatter, "jsonFormatter", "j", false, "JSON logging format")
-	rootCmd.Flags().StringVarP(&config.dbType, "database", "d", "mysql", "Database type (mysql, postgres)")
+	// Defaults are set in the setDefaults function
+	pflag.StringP("config", "c", "", "Config file")
+	pflag.IntP("port", "p", 0, "Sets which port the application should listen to")
+	pflag.BoolP("verbose", "v", false, "Verbose logging")
+	pflag.BoolP("jsonFormatter", "j", false, "JSON logging format")
+	pflag.IntP("shutdownTimeout", "s", 0,
+		"Sets the timeout (in seconds) for graceful shutdown")
+
+	// Database config
+	pflag.String("database", "", "Database type (mysql, postgres)")
+	pflag.String("dbname", "", "Name of the database the app should connect to")
+	pflag.String("dbuser", "", "Username the app should use to connect to the database")
+	pflag.String("dbpassword", "", "Password for the database user")
+	pflag.String("dbsslmode", "",
+		"SSL_MODE to use when connecting to the database (only used for PostgreSQL)")
+	pflag.String("dbhost", "", "Host running the database")
+	pflag.Int("dbport", 0, "Port for connecting to the database")
 }
 
 // setupLog initializes logrus logger
@@ -129,4 +142,57 @@ func setupLog(verbose, jsonFormatter bool) {
 	if jsonFormatter {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 	}
+}
+
+func initConfig() config {
+	setDefaults()
+
+	pflag.CommandLine.VisitAll(func(f *pflag.Flag) {
+		if f.Changed {
+			if err := viper.BindPFlag(f.Name, f); err != nil {
+				logrus.Fatalf("could not bind flag with spf13/viper: %v", err)
+			}
+		}
+	})
+
+	cfgfile := pflag.Lookup("config").Value.String()
+	logrus.Infof("cfgfile: %s", cfgfile)
+	if cfgfile == "" {
+		cfgfile = ".config.yml"
+	}
+	viper.SetConfigFile(cfgfile)
+
+	if err := viper.ReadInConfig(); err == nil {
+		logrus.Infof("Using config file: %s", viper.ConfigFileUsed())
+	}
+
+	return config{
+		verbose:         viper.GetBool("verbose"),
+		jsonFormatter:   viper.GetBool("jsonFormater"),
+		shutdownTimeout: viper.GetInt("shutdownTimeout"),
+		port:            viper.GetInt("port"),
+		db: database.Config{
+			Type:     viper.GetString("database"),
+			User:     viper.GetString("dbuser"),
+			Password: viper.GetString("dbpassword"),
+			SSLMode:  viper.GetString("dbsslmode"),
+			Host:     viper.GetString("dbhost"),
+			Name:     viper.GetString("dbname"),
+			Port:     viper.GetInt("dbport"),
+		},
+	}
+}
+
+func setDefaults() {
+	viper.SetDefault("verbose", false)
+	viper.SetDefault("jsonFormater", false)
+	viper.SetDefault("shutdownTimeout", 15)
+	viper.SetDefault("port", 8080)
+	viper.SetDefault("database", "postgres")
+	viper.SetDefault("dbuser", "default")
+	viper.SetDefault("dbpassword", "default")
+	viper.SetDefault("dbsslmode", "disable")
+	viper.SetDefault("dbhost", "localhost")
+	viper.SetDefault("dbname", "default")
+	viper.SetDefault("dbport", 5432)
 }

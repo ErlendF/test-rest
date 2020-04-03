@@ -1,3 +1,4 @@
+# PostgreSQL:
 version: '3.7'
 services:
   postgres:
@@ -6,9 +7,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=default
+      - POSTGRES_PASSWORD=default
+      - POSTGRES_DB=default
 
   pgadmin:
     container_name: pgadmin4-test-rest
@@ -22,3 +23,26 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=tempPass
     volumes:
       - ./servers.json:/pgadmin4/servers.json
+
+# MySQL equivalent:
+# version: '3.1'
+
+# services:
+
+#   db:
+#     image: mysql:5.7
+#     command: --default-authentication-plugin=mysql_native_password
+#     restart: always
+#     ports:
+#       - "8001:3306"
+#     environment:
+#       MYSQL_ROOT_PASSWORD: example
+#       MYSQL_DATABASE: mydb
+#       MYSQL_USER: test
+#       MYSQL_PASSWORD: example
+
+#   adminer:
+#     image: adminer
+#     restart: always
+#     ports:
+#       - 8080:8080

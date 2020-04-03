@@ -1,0 +1,7 @@
+dbhost: "localhost"
+dbport: 5432
+dbuser: "default"
+dbpassword: "default"
+dbname: "default"
+dbsslmode: "disable"
+verbose: true

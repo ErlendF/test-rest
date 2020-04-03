@@ -17,23 +17,33 @@ type Database struct {
 	dbType string
 }
 
+type Config struct {
+	Type     string
+	User     string
+	Password string
+	SSLMode  string
+	Host     string
+	Name     string
+	Port     int
+}
+
 // New returns a database object
-func New(dbType string) (*Database, error) {
-	db := &Database{dbType: dbType}
+func New(cfg *Config) (*Database, error) {
+	db := &Database{dbType: cfg.Type}
 	var err error
 	var info string
 
-	switch dbType {
+	switch cfg.Type {
 	case "postgres":
-		info = postgreSQLInfo()
+		info = postgreSQLInfo(cfg)
 	case "mysql":
-		info = mySQLInfo()
+		info = mySQLInfo(cfg)
 	default:
-		return nil, fmt.Errorf("not supported database type: %s", dbType)
+		return nil, fmt.Errorf("not supported database type: %s", cfg.Type)
 	}
 
 	logrus.Infof("Trying to connect to db: %s", info)
-	db.DB, err = sqlx.Connect(dbType, info)
+	db.DB, err = sqlx.Connect(cfg.Type, info)
 	if err != nil {
 		return nil, err
 	}
@@ -57,24 +67,11 @@ func New(dbType string) (*Database, error) {
 	return db, nil
 }
 
-func mySQLInfo() string {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", user, password, host, port, dbname)
+func postgreSQLInfo(cfg *Config) string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode)
 }
 
-func postgreSQLInfo() string {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-	sslmode := os.Getenv("DB_SSLMODE")
-
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, dbname, sslmode)
+func mySQLInfo(cfg *Config) string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name)
 }
