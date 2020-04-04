@@ -1,6 +1,13 @@
-DB_HOST: "localhost"
-DB_PORT: 5432
-DB_USER: "default"
-DB_PASSWORD: "default"
-DB_NAME: "default"
-DB_SSLMODE: "disable"
+#This is an example configuration
+
+port: 8080
+verbose: true
+jsonFormatter: false
+shutdownTimeout: 15
+dbType: "postgres"
+dbName: "postgres"
+dbUser: "default"
+dbPassword: "default"
+dbSslMode: "disable"
+dbHost: "localhost"
+dbPort: 5432
