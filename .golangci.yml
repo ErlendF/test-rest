@@ -90,7 +90,7 @@ run:
 issues:
   # init is made and used by cobra
   exclude-rules:
-    - path: cmd/root\.go
+    - path: cmd/config\.go
       linters:
         - gochecknoinits
 
