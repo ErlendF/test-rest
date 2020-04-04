@@ -1,0 +1,11 @@
+.config.yml
+.git
+.gitignore
+.golangci.yml
+docker-compose.yml
+Dockerfile
+LICENSE
+README.md
+sample.config.yml
+servers.json
+test-rest.yaml
