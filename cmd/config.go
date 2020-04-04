@@ -161,6 +161,7 @@ func readConfigFile() {
 
 	if !fileProvided {
 		logrus.Infoln("No config file provided")
+		return
 	}
 
 	logrus.WithError(err).Errorf("Error reading config file")
