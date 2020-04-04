@@ -42,8 +42,10 @@ type config struct {
 // rootCmd represents the base command
 var rootCmd = &cobra.Command{
 	Use:   "test",
-	Short: "Test",
-	Long:  `Test`,
+	Short: "Test-Rest is a REST API for a very simple message board.",
+	Long: `Test-Rest is a REST API for a very simple message board.
+It supports and uses a MySQL or PostgreSQL database for persistent storage.
+See README.md for additional documentation.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := initConfig()
 		setupLog(cfg.verbose, cfg.jsonFormatter)
