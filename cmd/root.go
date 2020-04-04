@@ -118,7 +118,7 @@ func init() {
 		"Sets the timeout (in seconds) for graceful shutdown")
 
 	// Database config
-	pflag.String("database", "", "Database type (mysql, postgres)")
+	pflag.String("dbtype", "", "Database type (mysql, postgres)")
 	pflag.String("dbname", "", "Name of the database the app should connect to")
 	pflag.String("dbuser", "", "Username the app should use to connect to the database")
 	pflag.String("dbpassword", "", "Password for the database user")
@@ -146,6 +146,9 @@ func setupLog(verbose, jsonFormatter bool) {
 
 func initConfig() config {
 	setDefaults()
+	if err := bindEnvs(); err != nil {
+		logrus.Fatalf("could not bind environment variables with spf13/viper: %v", err)
+	}
 
 	pflag.CommandLine.VisitAll(func(f *pflag.Flag) {
 		if f.Changed {
@@ -156,7 +159,6 @@ func initConfig() config {
 	})
 
 	cfgfile := pflag.Lookup("config").Value.String()
-	logrus.Infof("cfgfile: %s", cfgfile)
 	if cfgfile == "" {
 		cfgfile = ".config.yml"
 	}
@@ -172,7 +174,7 @@ func initConfig() config {
 		shutdownTimeout: viper.GetInt("shutdownTimeout"),
 		port:            viper.GetInt("port"),
 		db: database.Config{
-			Type:     viper.GetString("database"),
+			Type:     viper.GetString("dbtype"),
 			User:     viper.GetString("dbuser"),
 			Password: viper.GetString("dbpassword"),
 			SSLMode:  viper.GetString("dbsslmode"),
@@ -188,11 +190,36 @@ func setDefaults() {
 	viper.SetDefault("jsonFormater", false)
 	viper.SetDefault("shutdownTimeout", 15)
 	viper.SetDefault("port", 8080)
-	viper.SetDefault("database", "postgres")
+	viper.SetDefault("dbtype", "postgres")
 	viper.SetDefault("dbuser", "default")
 	viper.SetDefault("dbpassword", "default")
 	viper.SetDefault("dbsslmode", "disable")
 	viper.SetDefault("dbhost", "localhost")
 	viper.SetDefault("dbname", "default")
 	viper.SetDefault("dbport", 5432)
+}
+
+func bindEnvs() error {
+	envs := [][]string{
+		{"verbose"},
+		{"jsonFormater", "JSON_FORMATER"},
+		{"shutdownTimeout", "SHUTDOWN_TIMEOUT"},
+		{"port"},
+		{"dbtype", "DB_TYPE"},
+		{"dbuser", "DB_USER"},
+		{"dbpassword", "DB_PASSWORD"},
+		{"dbsslmode", "DB_SSLMODE"},
+		{"dbhost", "DB_HOST"},
+		{"dbname", "DB_NAME"},
+		{"dbport", "DB_PORT"},
+	}
+
+	for _, e := range envs {
+		err := viper.BindEnv(e...)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
